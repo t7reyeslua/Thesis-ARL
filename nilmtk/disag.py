@@ -13,12 +13,12 @@ from nilmtk.metrics import f1_score
 from nilmtk import HDFDataStore
 
 source = '/home/t7/Dropbox/Documents/TUDelft/Thesis/Software/nilmtk/data/REDD/low_freq'
-output = '/home/t7/Dropbox/Documents/TUDelft/Thesis/Software/nilmtk/data/REDD/redd.h5'
+outputhdf5 = '/home/t7/Dropbox/Documents/TUDelft/Thesis/Software/nilmtk/data/REDD/redd.h5'
 
 
 print("Converting...")
-convert_redd(source, output)
-redd = DataSet(output)
+convert_redd(source, outputhdf5)
+redd = DataSet(outputhdf5)
 
 print("Training...")
 redd.set_window(start=None, end='2011-05-01 00:00:00')
@@ -31,10 +31,10 @@ print("Disagreggating...")
 redd.set_window(start='2011-05-01 00:00:00', end=None)
 mains = elec.mains()
 output = HDFDataStore('output.h5', 'w')
-co.disaggregate(mains, output)
-output.close()
-
-print("Metrics...")
-disag = DataSet('output.h5')
-disag_elec = disag.buildings[1].elec
-f1 = f1_score(disag_elec, elec)
+#co.disaggregate(mains, output)
+#output.close()
+#
+#print("Metrics...")
+#disag = DataSet('output.h5')
+#disag_elec = disag.buildings[1].elec
+#f1 = f1_score(disag_elec, elec)
