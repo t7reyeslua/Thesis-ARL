@@ -17,7 +17,7 @@ outputhdf5 = '/home/t7/Dropbox/Documents/TUDelft/Thesis/Software/nilmtk/data/RED
 
 
 print("Converting...")
-convert_redd(source, outputhdf5)
+#convert_redd(source, outputhdf5)
 redd = DataSet(outputhdf5)
 
 print("Training...")
@@ -31,10 +31,10 @@ print("Disagreggating...")
 redd.set_window(start='2011-05-01 00:00:00', end=None)
 mains = elec.mains()
 output = HDFDataStore('output.h5', 'w')
-#co.disaggregate(mains, output)
-#output.close()
-#
-#print("Metrics...")
-#disag = DataSet('output.h5')
-#disag_elec = disag.buildings[1].elec
+co.disaggregate(mains, output)
+output.close()
+
+print("Metrics...")
+disag = DataSet('output.h5')
+disag_elec = disag.buildings[1].elec
 #f1 = f1_score(disag_elec, elec)

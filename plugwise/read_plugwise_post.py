@@ -10,66 +10,82 @@ password = 'ppwkcdzr'
 url = 'http://reyeslua.ddns.net/minirest/appliances'
 
 #Post to local database
-#urlphp = 'http://reyeslua.ddns.net:8080/plug.php'
 urlphp = 'http://localhost:8080/plug.php'
 
 #Post to visualize with Emoncms
-api_remote = '7723b5b2f433653c5e74ffd55c8b71ac'
 api_local  = 'bb30a1087d4bcbb1df5c80341a29e606'
-emoncms_remote_url = 'http://emoncms.org/input/post.json?'
-#emoncms_local_url  = 'http://reyeslua.ddns.net:8080/emoncms/input/post.json?'
 emoncms_local_url  = 'http://localhost:8080/emoncms/input/post.json?'
 
 
-appliances_list_last = []    
-#for x in range(0,15):  
-x = 0
-while True:
-    try:
-        i = datetime.datetime.now()
-        r = requests.get(url, auth=(username, password), stream=True)
-        i2 = datetime.datetime.now()
+def checkIfNewValue(appliance, appliances_list_last):
+    new_values = True
+    #Check if the appliance was read in the last reading
+    if (appliance[1].get('name') in appliances_list_last):
+        if (appliance[1].get('last_known_measurement') == appliances_list_last.get(appliance[1].get('name')).get('last_known_measurement')):
+            new_values = False
+            print appliance[1].get('name'), 'SAME VALUE AS PREVIOUS ONE', appliance[1].get('last_known_measurement')
+    if new_values:
+        print appliance
         
-        root = ET.fromstring(r.content)
-        appliances = list(root)
-        appliances_list = [] 
-            
-        for appliance in appliances:
-            appliance_info = {}
-            appliance_info['name'] = appliance[0].text
-            appliance_info['last_seen_date'] = appliance[4].text
-            appliance_info['last_known_measurement'] = appliance[8].text
-            appliance_info['power_state'] = appliance[5].text
-            appliance_info['current_power_usage'] = appliance[6].text
-            appliances_list.append(appliance_info)
+    return new_values
+
+def postToLocalDB(appliance):    
+    print 'Posting to local db...'
+    payload = {'name': appliance[1].get('name'), 'timestamp': appliance[1].get('last_known_measurement'), 'power': appliance[1].get('current_power_usage')}
+    r1 = requests.post(urlphp, data=payload)
+    print r1 
+    
+def postToEmoncms(appliance):    
+    print 'Posting to local emoncms...'                    
+    epoch = int(time.mktime(time.strptime(appliance[1].get('last_known_measurement'), '%Y-%m-%dT%H:%M:%S+01:00')))
+    payload2 = 'time=' + str(epoch) + "&node=" + appliance[1].get('name') + "&csv=" + appliance[1].get('current_power_usage') + "&apikey=" + api_local
+    r2 = requests.post(emoncms_local_url + payload2)
+    print r2.url
+
+def requestNewDataFromStretch(x):
+    i = datetime.datetime.now()
+    r = requests.get(url, auth=(username, password), stream=True)
+    i2 = datetime.datetime.now()
+    
+    print x, i.isoformat(), str((i2-i))
+    return r
+    
+def buildAppliancesList(r):
+    root = ET.fromstring(r.content)
+    appliances = list(root)
+    appliances_list = {}
         
-        print x, i.isoformat(), str((i2-i))
-        new_values = False
-        if appliances_list_last:
-            if appliances_list_last[0]['last_known_measurement'] != appliances_list[0]['last_known_measurement'] :
-                new_values = True
-        else:
-            new_values = True
-            
-        if new_values:
+    for appliance in appliances:
+        appliance_info = {}
+        appliance_info['name'] = appliance[0].text
+        appliance_info['last_seen_date'] = appliance[4].text
+        appliance_info['last_known_measurement'] = appliance[8].text
+        appliance_info['power_state'] = appliance[5].text
+        appliance_info['current_power_usage'] = appliance[6].text
+        appliances_list[appliance[0].text] = appliance_info
+        
+    return appliances_list
+
+def main():
+    appliances_list_last = []    
+    x = 0
+    while True:
+        try:
             x = x + 1
-            print appliances_list
-            for appliance_info in appliances_list:    
-                epoch = int(time.mktime(time.strptime(appliance_info['last_known_measurement'], '%Y-%m-%dT%H:%M:%S+01:00')))
-                print 'Posting to local db...'
-                payload = {'name': appliance_info['name'], 'timestamp': appliance_info['last_known_measurement'], 'power': appliance_info['current_power_usage']}
-                r1 = requests.post(urlphp, data=payload)
-                print r1            
-                print 'Posting to local emoncms...'
-                payload2 = 'time=' + str(epoch) + "&node=" + appliance_info['name'] + "&csv=" + appliance_info['current_power_usage'] + "&apikey=" + api_local
-                r2 = requests.post(emoncms_local_url + payload2)
-                print r2.url
-    #            print 'Posting to remote emoncms...'
-    #            payload3 = 'time=' + str(epoch) + "&node=" + appliance_info['name'] + "&csv=" + appliance_info['current_power_usage'] + "&apikey=" + api_remote
-    #            r3 = requests.post(emoncms_remote_url + payload3)
-    #            print r3.url
-           
-        appliances_list_last = appliances_list
-        sleep(5)
-    except Exception as e:
-        print "Parse error"
+            r = requestNewDataFromStretch(x)
+            appliances_list = buildAppliancesList(r)
+            
+            for appliance in appliances_list.items():
+                new_values = checkIfNewValue(appliance, appliances_list_last)            
+                if new_values:
+                    postToLocalDB(appliance)
+                    postToEmoncms(appliance)
+    
+            appliances_list_last = appliances_list
+            print '========================================================='
+            sleep(5)
+        except Exception as e:
+            print "Parse error", e
+
+if __name__ == '__main__':
+    main()

@@ -221,3 +221,52 @@ Traceback (most recent call last):
     .format(self.building(), self.instance(), stat_name))
 
 ValueError: Unknown format code 'd' for object of type 'str'
+44444
+
+5           0.474791
+6           0.129629
+7           0.570910
+8           0.584494
+9           0.326056
+11          0.209420
+12          0.068543
+13          0.005917
+14          0.000000
+15          0.154464
+16          0.042199
+17          0.416340
+18          0.319713
+19          0.000000
+(3, 4)      0.100410
+(10, 20)    0.159688
+dtype: float64
+
+
+
+
+5           0.662997
+6           0.107531
+7           0.624899
+8           0.712745
+9           0.610921
+11          0.168045
+12          0.057047
+13          0.002481
+14          0.000000
+15          0.137996
+16          0.011372
+17          0.310047
+18          0.232466
+19          0.000000
+(3, 4)      0.096890
+(10, 20)    0.162121
+dtype: float64
+
+
+I am working on a project to perform user-level energy disagreggation in order to be able to see the energy consumption/patterns of individual users in a household instead of just the consumption of the whole house. For that I have real time indoor position data of the users (room-level), as well  as data regarding their current activity (motion data from gyros and accelerometers that ultimately gives back an activity type like "opening microwave" for example).
+
+The idea is to aid the energy disagreggation algorithm by including information about the users whereabouts and motion when an "energy event" is detected. In this way, this may help achieve a better accuracy even if the energy data is not that frequent.
+
+My question would then be, if I wanted to include location and motion information to improve the energy disaggregation of the appliances from the whole-house reading, which would be the best way to do it? Should that information be somehow included in my dataset metadata and then create my own disaggregate function? 
+
+If successful, I would really like to contribute with this "module" to the project and help it continue growing :)

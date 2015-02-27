@@ -1,3 +1,16 @@
+
+"""
+NILM METADATA
+"""
+
+
+
+
+
+"""
+NILMTK
+"""
+
 #=============Convert data to NILMTK format and load into NILMTK=============
 - NILMTK uses an open file format based on the HDF5 binary file format to store both the power data and the metadata. 
 - The very first step when using NILMTK is to convert your dataset to the NILMTK HDF5 file format. 
@@ -57,3 +70,7 @@ The ElecMeter class represents a single electricity meter. Each ElecMeter has a 
 4- Train
 
 - To allow disaggregation to be done on any arbitrarily large dataset, disaggregation output is dumped to disk chunk-by-chunk
+
+# Metrics
+1- First we load the disag output exactly as if it were a normal dataset
+2- f1_score : all metrics take the same arguments
