@@ -5,6 +5,7 @@ Created on Thu Feb 26 10:43:17 2015
 @author: t7
 """
 
+from nilmtk.dataset_converters import download_dataport
 from nilmtk.dataset_converters import convert_redd
 from nilmtk import DataSet
 import nilmtk
@@ -12,8 +13,9 @@ from nilmtk.disaggregate import CombinatorialOptimisation
 from nilmtk.metrics import f1_score
 from nilmtk import HDFDataStore
 
-source = '/home/t7/Dropbox/Documents/TUDelft/Thesis/Software/nilmtk/data/REDD/low_freq'
-outputhdf5 = '/home/t7/Dropbox/Documents/TUDelft/Thesis/Software/nilmtk/data/REDD/redd.h5'
+
+source = '/home/t7/Dropbox/Documents/TUDelft/Thesis/dev/Datasets/REDD/low_freq'
+outputhdf5 = '/home/t7/Dropbox/Documents/TUDelft/Thesis/dev/Datasets/REDD/redd.h5'
 
 
 print("Converting...")
@@ -38,3 +40,9 @@ print("Metrics...")
 disag = DataSet('output.h5')
 disag_elec = disag.buildings[1].elec
 #f1 = f1_score(disag_elec, elec)
+
+
+#download_dataport('Aeo7SFRDqkRv', 
+#                  'BIBoegKX88H6', 
+#                  'wikienergy.h5',
+#                  periods_to_load = {434: ('2014-04-01', '2014-05-01')})
