@@ -1,0 +1,73 @@
+====================Determine Location====================
+
+Sources = REDD/ECO datasets
+
+1.- Read the data of each submetered appliance. 
+		* Give option for determining start and end dates.
+		* For REDD: A single file for all registered days. It consists of two columns: date and power data.
+		* For ECO : A different file for each day wich consists of one single column with the power data.
+2.- Create a list relating each appliance with an specific room within the house.
+		* The room location is arbitrary since we do not know the exact layout of the houses.
+		* The location is based typical layout of homes. For example, 'microwave' is located in 'kitchen'.
+3.- For each appliance being read, calculate the times at which it was being used.
+		* Specify a 'minimum_power_threshold' that defines the moment at which the device is ON. 
+		  For better accuracy define a different threshold for each type of device.
+		* If the consumed power is larger than the minimum threshold then the device is considered ON at that point in time.
+		* After this stage we have as an output for each device a list of 2 columns:
+			- timestamp 
+			- status after transition TRUE/FALSE.
+4.- Merge lists chronologically into a sinlge one.
+		* In order to save resources the merged list only contains the transitions ON/OFF-OFF/ON of each appliance.
+		* The merged list contains 4 columns: 
+			- timestamp
+			- status after transition.
+			- appliance
+			- location
+		* The location of the appliance is taken from the list constructed in step 2.
+		* "EDIT:" For technical reasons of pandas.Dataframe where there cannot exist repeated indexes, the output at this stage is a table with n columns and k rows.
+		          Where n is the number of appliances (one columns for each appliance) and
+		          k is the numnber of events, i.e. each row contains the indexes of all appliances that had a transition at that instant.
+5.- Determine the number of concurrent user/s and their location during each event from the merged list.
+		* In other words, in this step we discover the users (or at least the number of users) that could possibly exist in the house.
+		* Specify a 'minimum_timespan_threshold' between consecutive events to infer if it is possible for a single user to have initiated the group of events within that timeframe.
+		* For each transition event, select all events that fall minimum_timespan_threshold seconds before and after it. 
+		  From those, count the number of events that happen in different rooms. 
+		  This number of events is the least number of different people at the house at that particular moment.
+		* After this stage we have a list containing 2 columns: 
+			- timestamp of transition 
+			- an array with the n locations.
+
+===================Activity Histograms=======================
+
+With the data obtained and processed in 'Determine Location' or also in the output of the 'NILMTK CO disaggregation' we could get some other useful data.
+
+1.- Once you have the list with timestamp and status of each device we can bin them together in:
+		* buckets of n minutes of each day. For example, in buckets of 10 minutes.
+		* buckets according to the day of the week.
+
+2.- This histograms can already be created using NILMTK built-in functions
+
+
+=================NILMTK CO disaggregation==================
+
+1.- Using the list produced in (5) of 'Determine Location', modify the find_nearest() method to include the location constraint.
+		* For that we need:
+			- (a) the current power that will be compared and needs to be disaggregated -mains-. (already obtained in original method)
+			- (b) the list of summed power of all combinations. (already obtained in original method from the centroids found in training)
+			- (c) all current locations where there are users at the particular moment. (obtained from list produced in (5) of 'Determine Location')
+			- (d) current status of all appliances before this moment. (output of previous iteration, i.e. last combination of appliances  found with this method).
+2.- When finding nearest combination the location constraint indicates that:
+		* The new combination can not include any new appliance not present in last combination (d), if the location of this appliance is not included in (c), i.e. :
+			- An appliance cannot be turned ON if there wasnt any user present at the location at that moment. Applies to all appliances
+			- An appliance cannot be turned OFF if there wasnt any user present at the location at that moment. Applies only to "user-dependent devices".
+			  For example, the washing machine can turn off even if there is no one around.
+			- User-dependent devices include: fridge(light), freezer(light), general lightning, lamps, laptop,television, stereo.
+		* To leave room for small timing issues, a 'maximum_time_difference' is specified. This value allows for a given test timestamp to get the locations of (c) that
+		  fall within +/-maximum_time_difference.
+	  	* If for some reason there was no record in (c) corresponding to the timestamp in question, then it means that we are missing location data for that moment.
+	  		- Calculate the nearest without the location constraint as in the original method.
+3.- For possbile further improvements, whenever an OFF event is detected the duration of the appliance usage duration will be calculated so we have more information related to 
+	the way it is used (in this case we will eventually get its average usage duration).
+
+
+

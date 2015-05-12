@@ -90,7 +90,7 @@ elec = redd.buildings[1].elec
 #elec.draw_wiring_graph()
 #
 ##-Get only the meters immediately downstream of mains
-#elec.meters_directly_downstream_of_mains()
+elec.meters_directly_downstream_of_mains()
 #
 #
 #

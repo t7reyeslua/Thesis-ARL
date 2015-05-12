@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: plugwiselib
+Version: 0.2.dev0
+Summary: A library for communicating with Plugwise smartplugs
+Home-page: https://bitbucket.org/hadara/python-plugwise/wiki/Home
+Author: Sven Petai
+Author-email: hadara@bsd.ee
+License: MIT
+Description: UNKNOWN
+Platform: UNKNOWN
